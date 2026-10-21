@@ -26,21 +26,8 @@ export function colourFor(left: number): string {
 	return "#ff4d4f";
 }
 
-/** 42m, 2h 14m, 3d 4h. */
-export function formatDuration(seconds: number): string {
-	const mins = Math.max(0, Math.floor(seconds / 60));
-	if (mins < 60) return `${mins}m`;
-	const hours = Math.floor(mins / 60);
-	if (hours < 24) return `${hours}h ${mins % 60}m`;
-	return `${Math.floor(hours / 24)}d ${hours % 24}h`;
-}
-
 function percentText(win: WindowState, mode: DisplayMode): string {
 	return `${Math.round(mode === "left" ? win.left : win.used)}%`;
-}
-
-function resetText(win: WindowState): string {
-	return win.reset || win.resetsIn === undefined ? "window reset" : `resets ${formatDuration(win.resetsIn)}`;
 }
 
 function staleText(state: UsageState): string | undefined {
@@ -67,81 +54,81 @@ function bar(x: number, y: number, width: number, height: number, fraction: numb
 /** Single-window key: ring gauge with the percentage in the middle. 144x144. */
 export function renderWindowKey(kind: WindowKind, state: UsageState | undefined, mode: DisplayMode): string {
 	const win = state?.[kind];
-	let body = `<rect width="144" height="144" fill="${BG}"/>` + text(72, 22, 15, ACCENT, LABELS[kind].long, "middle", "bold");
+	let body = `<rect width="144" height="144" fill="${BG}"/>` + text(72, 22, 20, ACCENT, LABELS[kind].long, "middle", "bold");
 
 	const cx = 72;
-	const cy = 76;
-	const r = 38;
+	const cy = 84;
+	const r = 48;
 	const circumference = 2 * Math.PI * r;
-	body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${TRACK}" stroke-width="10"/>`;
+	body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${TRACK}" stroke-width="12"/>`;
 
 	if (!state || !win) {
-		body += text(cx, cy + 9, 28, MUTED, "--", "middle", "bold");
-		body += text(72, 136, 12, MUTED, "use Claude Code");
+		body += text(cx, cy + 12, 36, MUTED, "--", "middle", "bold");
 		return svgUrl(144, 144, body);
 	}
 
 	const fraction = (mode === "left" ? win.left : win.used) / 100;
 	const colour = colourFor(win.left);
 	if (fraction > 0) {
-		body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colour}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(fraction * circumference).toFixed(2)} ${circumference.toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+		body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colour}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(fraction * circumference).toFixed(2)} ${circumference.toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`;
 	}
 
 	const pct = percentText(win, mode);
-	body += text(cx, cy + 8, pct.length > 3 ? 22 : 26, "#ffffff", pct, "middle", "bold");
+	body += text(cx, cy + 10, pct.length > 3 ? 28 : 34, "#ffffff", pct, "middle", "bold");
 
 	// Inside the ring: "left"/"used", or how old the numbers are when Claude Code hasn't reported for a while.
 	const stale = staleText(state);
-	body += stale ? text(cx, cy + 22, 11, STALE, stale) : text(cx, cy + 22, 11, MUTED, mode);
-	body += text(72, 136, 13, MUTED, resetText(win));
+	body += stale ? text(cx, cy + 28, 14, STALE, stale) : text(cx, cy + 28, 14, MUTED, mode);
 	return svgUrl(144, 144, body);
 }
 
+type RowSizes = { label: number; value: number; unit: number; bar: number };
+
 /** Draws one labelled bar row; shared by the combined key and the dial. */
-function row(kind: WindowKind, win: WindowState | undefined, mode: DisplayMode, y: number, width: number, sizes: { label: number; value: number; reset: number }): string {
+function row(kind: WindowKind, win: WindowState | undefined, mode: DisplayMode, y: number, width: number, sizes: RowSizes, stale: string | undefined): string {
 	const pad = 10;
-	let out = text(pad, y + sizes.value - 4, sizes.label, ACCENT, LABELS[kind].short, "start", "bold");
+	const baseline = y + sizes.value;
+	const barY = baseline + 6;
+	let out = text(pad, baseline, sizes.label, ACCENT, LABELS[kind].short, "start", "bold");
 
 	if (!win) {
-		out += text(width - pad, y + sizes.value - 4, sizes.value, MUTED, "--", "end", "bold");
-		out += bar(pad, y + sizes.value + 2, width - pad * 2, 9, 0, MUTED);
+		out += text(width - pad, baseline, sizes.value, MUTED, "--", "end", "bold");
+		out += bar(pad, barY, width - pad * 2, sizes.bar, 0, MUTED);
 		return out;
 	}
 
-	const value = `${percentText(win, mode)}<tspan font-size="${sizes.reset}" font-weight="normal" fill="${MUTED}"> ${mode}</tspan>`;
-	out += text(width - pad, y + sizes.value - 4, sizes.value, "#ffffff", value, "end", "bold");
-	out += bar(pad, y + sizes.value + 2, width - pad * 2, 9, (mode === "left" ? win.left : win.used) / 100, colourFor(win.left));
-	out += text(pad, y + sizes.value + 2 + 9 + sizes.reset + 2, sizes.reset, MUTED, resetText(win), "start");
+	// The small word after the number is "left"/"used", or how old the numbers are when they've gone stale.
+	const unit = stale ? `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${STALE}"> ${stale}</tspan>` : `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${MUTED}"> ${mode}</tspan>`;
+	out += text(width - pad, baseline, sizes.value, "#ffffff", `${percentText(win, mode)}${unit}`, "end", "bold");
+	out += bar(pad, barY, width - pad * 2, sizes.bar, (mode === "left" ? win.left : win.used) / 100, colourFor(win.left));
 	return out;
 }
 
 /** 5H + weekly key: two stacked bars. 144x144. */
 export function renderCombinedKey(state: UsageState | undefined, mode: DisplayMode): string {
-	const sizes = { label: 16, value: 20, reset: 12 };
+	const sizes = { label: 22, value: 28, unit: 13, bar: 14 };
 	let body = `<rect width="144" height="144" fill="${BG}"/>`;
 	if (!state) {
 		return svgUrl(144, 144, body + emptyMessage(72, 66, 15, 12));
 	}
 
-	body += row("fiveHour", state.fiveHour, mode, 6, 144, sizes);
-	body += row("sevenDay", state.sevenDay, mode, 72, 144, sizes);
 	const stale = staleText(state);
-	if (stale) body += text(134, 138, 11, STALE, stale, "end");
+	body += row("fiveHour", state.fiveHour, mode, 14, 144, sizes, stale);
+	body += row("sevenDay", state.sevenDay, mode, 82, 144, sizes, stale);
 	return svgUrl(144, 144, body);
 }
 
 /** 5H + weekly dial: Stream Deck + touch strip segment. 200x100. */
 export function renderDial(state: UsageState | undefined, mode: DisplayMode): string {
-	const sizes = { label: 14, value: 16, reset: 11 };
+	const sizes = { label: 20, value: 26, unit: 14, bar: 11 };
 	let body = `<rect width="200" height="100" fill="${BG}"/>`;
 	if (!state) {
 		return svgUrl(200, 100, body + emptyMessage(100, 46, 15, 12));
 	}
 
-	body += row("fiveHour", state.fiveHour, mode, 2, 200, sizes);
-	body += row("sevenDay", state.sevenDay, mode, 51, 200, sizes);
 	const stale = staleText(state);
-	if (stale) body += text(190, 96, 11, STALE, stale, "end");
+	body += row("fiveHour", state.fiveHour, mode, 2, 200, sizes, stale);
+	body += row("sevenDay", state.sevenDay, mode, 51, 200, sizes, stale);
 	return svgUrl(200, 100, body);
 }
 
