@@ -2,6 +2,7 @@ import streamDeck from "@elgato/streamdeck";
 
 import { CombinedDial } from "./actions/dial";
 import { CombinedKey, FiveHourKey, WeeklyKey } from "./actions/keys";
+import { LiveUsage } from "./live-usage";
 import { UsageSource } from "./usage";
 
 streamDeck.logger.setLevel("info");
@@ -24,4 +25,12 @@ source.onChange(redrawAll);
 source.start(5000);
 setInterval(redrawAll, 30_000);
 
-streamDeck.connect();
+// Opt-in "Live usage" (a plugin-wide setting, ticked in any action's settings) also polls the claude.ai usage endpoint.
+type GlobalSettings = { liveUsage?: boolean };
+const live = new LiveUsage(streamDeck.logger, () => void source.refresh(true));
+streamDeck.settings.onDidReceiveGlobalSettings<GlobalSettings>((ev) => live.setEnabled(ev.settings.liveUsage === true));
+
+streamDeck.connect().then(async () => {
+	const settings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+	live.setEnabled(settings.liveUsage === true);
+});

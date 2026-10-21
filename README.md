@@ -31,6 +31,15 @@ It never touches your OAuth token or makes any network request.
 
 **The trade-off:** the numbers only update when you're using Claude Code. Usage you burn in the claude.ai app or desktop app shows up the next time you send a Claude Code message. When the numbers are over an hour old, the keys say so in amber (e.g. `3h old`). Once a window's reset time passes, the key shows it as 100% left, because it is.
 
+### Optional: Live usage (unofficial)
+
+Tick **Live usage** in any action's settings to also follow usage from claude.ai chat. The plugin then checks the same usage endpoint the claude.ai usage screen uses, every 2 minutes, signed in as Claude Code is. That's the macOS Keychain item `Claude Code-credentials`, or `~/.claude/.credentials.json` on other platforms. macOS asks once whether Stream Deck may read it.
+
+- It's off by default, and it applies to every action.
+- The endpoint is undocumented, so it may change, rate-limit or stop working. When it fails, the keys fall back to whatever Claude Code last reported.
+- The plugin only reads the token and never refreshes it, so it can't sign Claude Code out. If the token has expired, live updates pause until Claude Code next runs and renews it.
+- The token is only ever sent to `api.anthropic.com`, and is never logged.
+
 ## Setup (first time)
 
 ### 1. Install the tools
