@@ -39,10 +39,18 @@ function staleColour(style: Style): string {
 	return style.monotone ? MUTED : STALE;
 }
 
-/** The label, plus a "!" when the weekly window is on pace to run out before it resets. */
-function labelText(label: string, win: WindowState | undefined, style: Style): string {
-	if (!win?.runsOut) return label;
-	return `${label}<tspan fill="${style.monotone ? "#ffffff" : WARN}"> !</tspan>`;
+/**
+ * Warning triangle with an exclamation mark, shown when the weekly window is on pace to run out before it resets.
+ * (x, y) is the top-left of a size-wide box; the triangle's base sits at y + size.
+ */
+function warningIcon(x: number, y: number, size: number, style: Style): string {
+	const fill = style.monotone ? "#ffffff" : WARN;
+	const h = size * 0.88;
+	const top = y + size - h;
+	const triangle = `<path d="M${x + size / 2} ${top} L${x + size} ${y + size} L${x} ${y + size} Z" fill="${fill}" stroke="${fill}" stroke-width="${size * 0.12}" stroke-linejoin="round"/>`;
+	const barW = size * 0.13;
+	const mark = `<rect x="${x + size / 2 - barW / 2}" y="${top + h * 0.32}" width="${barW}" height="${h * 0.36}" rx="${barW / 2}" fill="${BG}"/>` + `<circle cx="${x + size / 2}" cy="${top + h * 0.82}" r="${barW * 0.6}" fill="${BG}"/>`;
+	return triangle + mark;
 }
 
 function percentText(win: WindowState, mode: DisplayMode): string {
@@ -74,7 +82,8 @@ function bar(x: number, y: number, width: number, height: number, fraction: numb
 export function renderWindowKey(kind: WindowKind, state: UsageState | undefined, style: Style): string {
 	const { mode } = style;
 	const win = state?.[kind];
-	let body = `<rect width="144" height="144" fill="${BG}"/>` + text(72, 22, 20, labelColour(style), labelText(LABELS[kind].long, win, style), "middle", "bold");
+	// With the warning icon in the top-right corner, the label shifts left to keep clear of it.
+	let body = `<rect width="144" height="144" fill="${BG}"/>` + text(win?.runsOut ? 62 : 72, 22, 20, labelColour(style), LABELS[kind].long, "middle", "bold");
 
 	const cx = 72;
 	const cy = 84;
@@ -97,12 +106,16 @@ export function renderWindowKey(kind: WindowKind, state: UsageState | undefined,
 	const stale = staleText(state);
 	body += text(cx, stale ? cy + 8 : cy + 12, pct.length > 3 ? 28 : 34, "#ffffff", pct, "middle", "bold");
 
+	// Top-right corner, beside the label: on pace to run out before the reset.
+	if (win.runsOut) body += warningIcon(118, 5, 20, style);
+
 	// Under the number, only when Claude Code hasn't reported for a while: how old the numbers are.
 	if (stale) body += text(cx, cy + 28, 14, staleColour(style), stale);
 	return svgUrl(144, 144, body);
 }
 
-type RowSizes = { label: number; value: number; unit: number; bar: number };
+/** warnValue: a smaller number size for a row that also carries the warning icon, where the row is too narrow for both. */
+type RowSizes = { label: number; value: number; unit: number; bar: number; warnValue?: number };
 
 /** Draws one labelled bar row; shared by the combined key and the dial. */
 function row(kind: WindowKind, win: WindowState | undefined, style: Style, y: number, width: number, sizes: RowSizes, stale: string | undefined, label: "short" | "dial" = "short"): string {
@@ -110,7 +123,7 @@ function row(kind: WindowKind, win: WindowState | undefined, style: Style, y: nu
 	const pad = 10;
 	const baseline = y + sizes.value;
 	const barY = baseline + 6;
-	let out = text(pad, baseline, sizes.label, labelColour(style), labelText(LABELS[kind][label], win, style), "start", "bold");
+	let out = text(pad, baseline, sizes.label, labelColour(style), LABELS[kind][label], "start", "bold");
 
 	if (!win) {
 		out += text(width - pad, baseline, sizes.value, MUTED, "--", "end", "bold");
@@ -120,14 +133,23 @@ function row(kind: WindowKind, win: WindowState | undefined, style: Style, y: nu
 
 	// After the number, only when the numbers have gone stale: how old they are.
 	const unit = stale ? `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${staleColour(style)}"> ${stale}</tspan>` : "";
-	out += text(width - pad, baseline, sizes.value, "#ffffff", `${percentText(win, mode)}${unit}`, "end", "bold");
+	// The warning sits at the right edge, after the number.
+	let valueEnd = width - pad;
+	let valueSize = sizes.value;
+	if (win.runsOut) {
+		valueSize = sizes.warnValue ?? sizes.value;
+		const icon = Math.round(valueSize * 0.8);
+		out += warningIcon(valueEnd - icon, baseline - icon, icon, style);
+		valueEnd -= icon + 6;
+	}
+	out += text(valueEnd, baseline, valueSize, "#ffffff", `${percentText(win, mode)}${unit}`, "end", "bold");
 	out += bar(pad, barY, width - pad * 2, sizes.bar, (mode === "left" ? win.left : win.used) / 100, colourFor(win.left, style.monotone));
 	return out;
 }
 
 /** 5H + weekly key: two stacked bars. 144x144. */
 export function renderCombinedKey(state: UsageState | undefined, style: Style): string {
-	const sizes = { label: 22, value: 28, unit: 13, bar: 14 };
+	const sizes = { label: 22, value: 28, unit: 13, bar: 14, warnValue: 23 };
 	let body = `<rect width="144" height="144" fill="${BG}"/>`;
 	if (!state) {
 		return svgUrl(144, 144, body + emptyMessage(72, 66, 15, 12, style));

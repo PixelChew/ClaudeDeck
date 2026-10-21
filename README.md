@@ -15,7 +15,7 @@ Press a key (or push the dial / tap the strip) to flip between **% used** (the d
 
 Colours: green at 50%+ left, amber from 20%, red under 20%. Tick **Monotone** in an action's settings for plain white and grey instead.
 
-A red **!** next to the weekly label means you're on pace to run out before the weekly reset. It's a straight-line estimate from % used and time elapsed this week (warns at a 90% projection, and only after the first day), since Claude's own "you'll run out" notice isn't passed to Claude Code.
+A red warning triangle to the right of the weekly % means you're on pace to run out before the weekly reset. It's a straight-line estimate from % used and time elapsed this week (warns at a 90% projection, and only after the first day), since Claude's own "you'll run out" notice isn't passed to Claude Code.
 
 ## How it gets the numbers (and what it doesn't do)
 
