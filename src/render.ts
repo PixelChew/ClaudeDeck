@@ -163,8 +163,8 @@ function row(kind: WindowKind, win: WindowState | undefined, style: Style, y: nu
 	if (win.runsOut) {
 		valueSize = sizes.warnValue ?? sizes.value;
 		const icon = Math.round(valueSize * 0.8);
-		const valueWidth = percentText(win, mode).length * valueSize * 0.66;
-		out += warningIcon(valueEnd - valueWidth - 6 - icon, baseline - icon, icon, style);
+		const valueWidth = percentText(win, mode).length * valueSize * 0.72;
+		out += warningIcon(valueEnd - valueWidth - 10 - icon, baseline - icon, icon, style);
 	}
 	out += text(valueEnd, baseline, valueSize, "#ffffff", `${percentText(win, mode)}${unit}`, "end", "bold");
 	out += bar(pad, barY, width - pad * 2, sizes.bar, (mode === "left" ? win.left : win.used) / 100, colourFor(win.left, style.monotone));
