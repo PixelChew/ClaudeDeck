@@ -1,0 +1,1 @@
+{ "name": "claudedeck", "owner": { "name": "PixelChew" }, "plugins": [ { "name": "claudedeck-bridge", "source": "./mod", "description": "Saves your Claude usage windows for the ClaudeDeck Stream Deck plugin" } ] }

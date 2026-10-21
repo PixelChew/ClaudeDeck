@@ -1,0 +1,73 @@
+{
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+	"Name": "Claude Usage",
+	"Version": "0.1.0.0",
+	"Author": "PixelChew",
+	"Description": "Shows how much of your Claude 5-hour and weekly usage is left, using the numbers Claude Code reports to its status line.",
+	"Category": "Claude Usage",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"Icon": "imgs/plugin/marketplace",
+	"CodePath": "bin/plugin.js",
+	"UUID": "com.pixelchew.claude-usage",
+	"SDKVersion": 3,
+	"Software": {
+		"MinimumVersion": "7.1"
+	},
+	"OS": [
+		{ "Platform": "mac", "MinimumVersion": "12" },
+		{ "Platform": "windows", "MinimumVersion": "10" }
+	],
+	"Nodejs": {
+		"Version": "24",
+		"Debug": "enabled"
+	},
+	"Actions": [
+		{
+			"Name": "5-hour window",
+			"UUID": "com.pixelchew.claude-usage.five-hour",
+			"Icon": "imgs/actions/five-hour",
+			"Tooltip": "Claude usage left in the current 5-hour window. Press to flip between left and used.",
+			"PropertyInspectorPath": "ui/settings.html",
+			"Controllers": ["Keypad"],
+			"DisableAutomaticStates": true,
+			"States": [{ "Image": "imgs/actions/key-placeholder", "ShowTitle": false }]
+		},
+		{
+			"Name": "Weekly window",
+			"UUID": "com.pixelchew.claude-usage.weekly",
+			"Icon": "imgs/actions/weekly",
+			"Tooltip": "Claude usage left this week. Press to flip between left and used.",
+			"PropertyInspectorPath": "ui/settings.html",
+			"Controllers": ["Keypad"],
+			"DisableAutomaticStates": true,
+			"States": [{ "Image": "imgs/actions/key-placeholder", "ShowTitle": false }]
+		},
+		{
+			"Name": "5-hour + weekly",
+			"UUID": "com.pixelchew.claude-usage.combined",
+			"Icon": "imgs/actions/combined",
+			"Tooltip": "Both Claude usage windows on one key. Press to flip between left and used.",
+			"PropertyInspectorPath": "ui/settings.html",
+			"Controllers": ["Keypad"],
+			"DisableAutomaticStates": true,
+			"States": [{ "Image": "imgs/actions/key-placeholder", "ShowTitle": false }]
+		},
+		{
+			"Name": "5-hour + weekly (dial)",
+			"UUID": "com.pixelchew.claude-usage.dial",
+			"Icon": "imgs/actions/combined",
+			"Tooltip": "Both Claude usage windows on the Stream Deck + touch strip.",
+			"PropertyInspectorPath": "ui/settings.html",
+			"Controllers": ["Encoder"],
+			"Encoder": {
+				"layout": "layouts/usage-dial.json",
+				"Icon": "imgs/actions/combined",
+				"TriggerDescription": {
+					"Push": "Flip left / used",
+					"Touch": "Flip left / used"
+				}
+			},
+			"States": [{ "Image": "imgs/actions/key-placeholder", "ShowTitle": false }]
+		}
+	]
+}

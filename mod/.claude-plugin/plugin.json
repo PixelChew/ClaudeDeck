@@ -1,0 +1,8 @@
+{
+  "name": "claudedeck-bridge",
+  "version": "0.1.0",
+  "description": "Saves your Claude usage windows for the ClaudeDeck Stream Deck plugin",
+  "author": {
+    "name": "PixelChew"
+  }
+}
