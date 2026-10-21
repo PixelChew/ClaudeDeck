@@ -19,10 +19,11 @@ Colours: green at 50%+ left, amber from 20%, red under 20%.
 
 There is no public API for Claude plan limits. What *is* documented is that Claude Code passes `rate_limits.five_hour` and `rate_limits.seven_day` (percent used and reset time) to your [status line script](https://code.claude.com/docs/en/statusline) on Pro and Max plans.
 
-So this plugin has two parts:
+So this plugin has three parts:
 
-1. **The bridge** (`bridge/statusline-bridge.mjs`): Claude Code's status line runs it. It saves those numbers to `~/.claude/streamdeck-usage.json` and prints a status line. If you already had a status line, the installer chains it, so your old one still shows.
-2. **The plugin**: it reads that file every 5 seconds and draws the keys. It redraws every 30 seconds so the countdowns keep moving.
+1. **The bridge** (`bridge/statusline-bridge.mjs`): Claude Code's status line runs it in the terminal. It saves those numbers to `~/.claude/streamdeck-usage.json` and prints a status line. If you already had a status line, the installer chains it, so your old one still shows.
+2. **The mod** (`mod/`): a Claude Code plugin that writes the same file from any session, including the Claude desktop app and IDE extensions, which never run a status line.
+3. **The plugin**: it reads that file every 5 seconds and draws the keys. It redraws every 30 seconds so the countdowns keep moving.
 
 It never touches your OAuth token or makes any network request.
 
@@ -55,6 +56,14 @@ This copies the bridge to `~/.claude/streamdeck-usage-bridge.mjs` and sets `stat
 Now open Claude Code and send any message. Your status line should read something like `Opus · 5h 77% left · wk 59% left`, and `~/.claude/streamdeck-usage.json` should exist.
 
 To undo it: `npm run remove-bridge`.
+
+If you use Claude Code in the **desktop app** (or an IDE), also install the mod, since those never run a status line:
+
+```sh
+npm run install-mod
+```
+
+It adds this repo as a plugin marketplace and installs `claudedeck-bridge@claudedeck`. It loads in sessions you start after installing. To undo it: `npm run remove-mod`.
 
 ### 4. Build and link the plugin
 
@@ -110,6 +119,6 @@ npm run pack
 
 ## Troubleshooting
 
-- **Keys stuck on "waiting for Claude Code":** check that `~/.claude/streamdeck-usage.json` exists. If it doesn't, check `statusLine` in `~/.claude/settings.json` and send a message in Claude Code. `rate_limits` only appears on Pro/Max plans, and only after the first reply in a session.
+- **Keys stuck on "waiting for Claude Code":** check that `~/.claude/streamdeck-usage.json` exists. If it doesn't, check `statusLine` in `~/.claude/settings.json` and send a message in Claude Code. In the desktop app the status line never runs, so install the mod (`npm run install-mod`) and start a new session. `rate_limits` only appears on Pro/Max plans, and only after the first reply in a session.
 - **Status line blank after installing:** run the command from `settings.json` by hand with `echo '{}' |` in front of it to see any error.
 - **Moved Node or the repo?** Run `npm run install-bridge` again. It records the absolute path to `node`.

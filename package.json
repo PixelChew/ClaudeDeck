@@ -10,6 +10,8 @@
 		"typecheck": "tsc --noEmit",
 		"install-bridge": "node bridge/install.mjs",
 		"remove-bridge": "node bridge/install.mjs --remove",
+		"install-mod": "claude plugin marketplace add . && claude plugin install claudedeck-bridge@claudedeck",
+		"remove-mod": "claude plugin uninstall claudedeck-bridge@claudedeck && claude plugin marketplace remove claudedeck",
 		"validate": "streamdeck validate com.pixelchew.claude-usage.sdPlugin",
 		"pack": "npm run build && streamdeck pack com.pixelchew.claude-usage.sdPlugin --force"
 	},
