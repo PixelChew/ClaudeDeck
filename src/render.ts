@@ -14,9 +14,9 @@ const STALE_AFTER = 60 * 60;
 
 export type WindowKind = "fiveHour" | "sevenDay";
 
-const LABELS: Record<WindowKind, { long: string; short: string }> = {
-	fiveHour: { long: "5-HOUR", short: "5H" },
-	sevenDay: { long: "WEEKLY", short: "WK" }
+const LABELS: Record<WindowKind, { long: string; short: string; dial: string }> = {
+	fiveHour: { long: "5-HOUR", short: "5H", dial: "5-Hour" },
+	sevenDay: { long: "WEEKLY", short: "WK", dial: "Week" }
 };
 
 /** Green while there's plenty left, amber when it's getting low, red when nearly out. */
@@ -85,11 +85,11 @@ export function renderWindowKey(kind: WindowKind, state: UsageState | undefined,
 type RowSizes = { label: number; value: number; unit: number; bar: number };
 
 /** Draws one labelled bar row; shared by the combined key and the dial. */
-function row(kind: WindowKind, win: WindowState | undefined, mode: DisplayMode, y: number, width: number, sizes: RowSizes, stale: string | undefined): string {
+function row(kind: WindowKind, win: WindowState | undefined, mode: DisplayMode, y: number, width: number, sizes: RowSizes, stale: string | undefined, label: "short" | "dial" = "short"): string {
 	const pad = 10;
 	const baseline = y + sizes.value;
 	const barY = baseline + 6;
-	let out = text(pad, baseline, sizes.label, ACCENT, LABELS[kind].short, "start", "bold");
+	let out = text(pad, baseline, sizes.label, ACCENT, LABELS[kind][label], "start", "bold");
 
 	if (!win) {
 		out += text(width - pad, baseline, sizes.value, MUTED, "--", "end", "bold");
@@ -127,8 +127,8 @@ export function renderDial(state: UsageState | undefined, mode: DisplayMode): st
 	}
 
 	const stale = staleText(state);
-	body += row("fiveHour", state.fiveHour, mode, 2, 200, sizes, stale);
-	body += row("sevenDay", state.sevenDay, mode, 51, 200, sizes, stale);
+	body += row("fiveHour", state.fiveHour, mode, 2, 200, sizes, stale, "dial");
+	body += row("sevenDay", state.sevenDay, mode, 51, 200, sizes, stale, "dial");
 	return svgUrl(200, 100, body);
 }
 
