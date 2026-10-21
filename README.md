@@ -6,12 +6,12 @@ A Stream Deck plugin that shows how much of your Claude plan you have left: the 
 
 | Action | Where | Shows |
 | --- | --- | --- |
-| 5-hour window | Key | Ring gauge, % left |
-| Weekly window | Key | Ring gauge, % left |
+| 5-hour window | Key | Ring gauge, % used |
+| Weekly window | Key | Ring gauge, % used |
 | 5-hour + weekly | Key | Both windows as stacked bars |
 | 5-hour + weekly (dial) | Stream Deck + dial / touch strip | Both windows as stacked bars |
 
-Press a key (or push the dial / tap the strip) to flip between **% left** and **% used**. The same choice is in each action's settings panel.
+Press a key (or push the dial / tap the strip) to flip between **% used** (the default) and **% left**. The same choice is in each action's settings panel.
 
 Colours: green at 50%+ left, amber from 20%, red under 20%.
 

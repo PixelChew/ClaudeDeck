@@ -21,7 +21,7 @@ export abstract class UsageAction extends SingletonAction<UsageSettings> {
 	protected abstract draw(action: Action<UsageSettings>, state: UsageState | undefined, mode: DisplayMode): Promise<void>;
 
 	protected mode(id: string): DisplayMode {
-		return this.#settings.get(id)?.display ?? "left";
+		return this.#settings.get(id)?.display ?? "used";
 	}
 
 	async redraw(): Promise<void> {
