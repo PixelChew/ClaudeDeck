@@ -11,6 +11,7 @@ const TRACK = "#2a2a2a";
 const ACCENT = "#d97757";
 const MUTED = "#9a9a9a";
 const STALE = "#ffb020";
+const WARN = "#ff4d4f";
 
 /** Snapshots older than this get an "Xh old" marker, since Claude Code only reports while you use it. */
 const STALE_AFTER = 60 * 60;
@@ -27,7 +28,7 @@ export function colourFor(left: number, monotone = false): string {
 	if (monotone) return "#ffffff";
 	if (left >= 50) return "#3ddc84";
 	if (left >= 20) return STALE;
-	return "#ff4d4f";
+	return WARN;
 }
 
 function labelColour(style: Style): string {
@@ -36,6 +37,12 @@ function labelColour(style: Style): string {
 
 function staleColour(style: Style): string {
 	return style.monotone ? MUTED : STALE;
+}
+
+/** The label, plus a "!" when the weekly window is on pace to run out before it resets. */
+function labelText(label: string, win: WindowState | undefined, style: Style): string {
+	if (!win?.runsOut) return label;
+	return `${label}<tspan fill="${style.monotone ? "#ffffff" : WARN}"> !</tspan>`;
 }
 
 function percentText(win: WindowState, mode: DisplayMode): string {
@@ -67,7 +74,7 @@ function bar(x: number, y: number, width: number, height: number, fraction: numb
 export function renderWindowKey(kind: WindowKind, state: UsageState | undefined, style: Style): string {
 	const { mode } = style;
 	const win = state?.[kind];
-	let body = `<rect width="144" height="144" fill="${BG}"/>` + text(72, 22, 20, labelColour(style), LABELS[kind].long, "middle", "bold");
+	let body = `<rect width="144" height="144" fill="${BG}"/>` + text(72, 22, 20, labelColour(style), labelText(LABELS[kind].long, win, style), "middle", "bold");
 
 	const cx = 72;
 	const cy = 84;
@@ -103,7 +110,7 @@ function row(kind: WindowKind, win: WindowState | undefined, style: Style, y: nu
 	const pad = 10;
 	const baseline = y + sizes.value;
 	const barY = baseline + 6;
-	let out = text(pad, baseline, sizes.label, labelColour(style), LABELS[kind][label], "start", "bold");
+	let out = text(pad, baseline, sizes.label, labelColour(style), labelText(LABELS[kind][label], win, style), "start", "bold");
 
 	if (!win) {
 		out += text(width - pad, baseline, sizes.value, MUTED, "--", "end", "bold");
