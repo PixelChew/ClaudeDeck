@@ -52,9 +52,28 @@ function warningIcon(x: number, y: number, size: number, style: Style): string {
 	const bottom = y + size - i;
 	const h = bottom - top;
 	const cx = x + size / 2;
-	const triangle = `<path d="M${cx} ${top} L${x + size - i} ${bottom} L${x + i} ${bottom} Z" fill="none" stroke="${colour}" stroke-width="${stroke}" stroke-linejoin="round"/>`;
+	const triangle = `<path d="${roundedPolygon([[cx, top], [x + size - i, bottom], [x + i, bottom]], size * 0.16)}" fill="none" stroke="${colour}" stroke-width="${stroke}" stroke-linejoin="round"/>`;
 	const mark = `<line x1="${cx}" y1="${top + h * 0.36}" x2="${cx}" y2="${top + h * 0.64}" stroke="${colour}" stroke-width="${stroke}" stroke-linecap="round"/>` + `<circle cx="${cx}" cy="${top + h * 0.82}" r="${stroke * 0.6}" fill="${colour}"/>`;
-	return triangle + mark;
+	// Slightly see-through so it reads as a hint, not an alarm.
+	return `<g opacity="0.75">${triangle}${mark}</g>`;
+}
+
+/** A closed path through the points with each corner swapped for a curve starting `radius` back along each edge. */
+function roundedPolygon(points: [number, number][], radius: number): string {
+	const n = points.length;
+	const toward = (from: [number, number], to: [number, number]): [number, number] => {
+		const dx = to[0] - from[0];
+		const dy = to[1] - from[1];
+		const t = Math.min(radius / Math.hypot(dx, dy), 0.5);
+		return [from[0] + dx * t, from[1] + dy * t];
+	};
+	let d = "";
+	points.forEach((p, k) => {
+		const start = toward(p, points[(k - 1 + n) % n]);
+		const end = toward(p, points[(k + 1) % n]);
+		d += `${k === 0 ? "M" : "L"}${start[0]} ${start[1]} Q${p[0]} ${p[1]} ${end[0]} ${end[1]} `;
+	});
+	return d + "Z";
 }
 
 function percentText(win: WindowState, mode: DisplayMode): string {
