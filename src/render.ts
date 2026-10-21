@@ -135,7 +135,8 @@ export function renderCombinedKey(state: UsageState | undefined, style: Style): 
 /** 5H + weekly dial: Stream Deck + touch strip segment. 200x100. */
 export function renderDial(state: UsageState | undefined, style: Style): string {
 	const sizes = { label: 20, value: 26, unit: 14, bar: 11 };
-	let body = `<rect width="200" height="100" fill="${BG}"/>`;
+	// No background fill, so the touch strip's own background shows through.
+	let body = "";
 	if (!state) {
 		return svgUrl(200, 100, body + emptyMessage(100, 46, 15, 12, style));
 	}
