@@ -56,8 +56,9 @@ export class LiveUsage {
 	async #fetchOnce(): Promise<number> {
 		const token = await readAccessToken();
 		if (!token) {
+			// Cheap to check, so look again soon: signing in to Claude Code makes it appear.
 			this.logger.warn("Live usage: no Claude Code sign-in found");
-			return BACKOFF_MS;
+			return POLL_MS;
 		}
 
 		const res = await fetch(USAGE_URL, {
