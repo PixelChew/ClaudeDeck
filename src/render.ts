@@ -40,16 +40,20 @@ function staleColour(style: Style): string {
 }
 
 /**
- * Warning triangle with an exclamation mark, shown when the weekly window is on pace to run out before it resets.
- * (x, y) is the top-left of a size-wide box; the triangle's base sits at y + size.
+ * Outlined warning triangle with an exclamation mark, shown when the weekly window is on pace to run out before it
+ * resets. (x, y) is the top-left of a size-wide box; the triangle's base sits at y + size.
  */
 function warningIcon(x: number, y: number, size: number, style: Style): string {
-	const fill = style.monotone ? "#ffffff" : WARN;
-	const h = size * 0.88;
-	const top = y + size - h;
-	const triangle = `<path d="M${x + size / 2} ${top} L${x + size} ${y + size} L${x} ${y + size} Z" fill="${fill}" stroke="${fill}" stroke-width="${size * 0.12}" stroke-linejoin="round"/>`;
-	const barW = size * 0.13;
-	const mark = `<rect x="${x + size / 2 - barW / 2}" y="${top + h * 0.32}" width="${barW}" height="${h * 0.36}" rx="${barW / 2}" fill="${BG}"/>` + `<circle cx="${x + size / 2}" cy="${top + h * 0.82}" r="${barW * 0.6}" fill="${BG}"/>`;
+	const colour = style.monotone ? "#ffffff" : WARN;
+	const stroke = size * 0.11;
+	// Inset by half the stroke so the outline stays inside the box.
+	const i = stroke / 2;
+	const top = y + size * 0.1 + i;
+	const bottom = y + size - i;
+	const h = bottom - top;
+	const cx = x + size / 2;
+	const triangle = `<path d="M${cx} ${top} L${x + size - i} ${bottom} L${x + i} ${bottom} Z" fill="none" stroke="${colour}" stroke-width="${stroke}" stroke-linejoin="round"/>`;
+	const mark = `<line x1="${cx}" y1="${top + h * 0.36}" x2="${cx}" y2="${top + h * 0.64}" stroke="${colour}" stroke-width="${stroke}" stroke-linecap="round"/>` + `<circle cx="${cx}" cy="${top + h * 0.82}" r="${stroke * 0.6}" fill="${colour}"/>`;
 	return triangle + mark;
 }
 
