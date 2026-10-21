@@ -137,14 +137,15 @@ function row(kind: WindowKind, win: WindowState | undefined, style: Style, y: nu
 
 	// After the number, only when the numbers have gone stale: how old they are.
 	const unit = stale ? `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${staleColour(style)}"> ${stale}</tspan>` : "";
-	// The warning sits at the right edge, after the number.
-	let valueEnd = width - pad;
+	// The warning sits just left of the number. SVG can't measure text, so the number's width is estimated from
+	// Arial Bold's average digit width.
+	const valueEnd = width - pad;
 	let valueSize = sizes.value;
 	if (win.runsOut) {
 		valueSize = sizes.warnValue ?? sizes.value;
 		const icon = Math.round(valueSize * 0.8);
-		out += warningIcon(valueEnd - icon, baseline - icon, icon, style);
-		valueEnd -= icon + 6;
+		const valueWidth = percentText(win, mode).length * valueSize * 0.66;
+		out += warningIcon(valueEnd - valueWidth - 6 - icon, baseline - icon, icon, style);
 	}
 	out += text(valueEnd, baseline, valueSize, "#ffffff", `${percentText(win, mode)}${unit}`, "end", "bold");
 	out += bar(pad, barY, width - pad * 2, sizes.bar, (mode === "left" ? win.left : win.used) / 100, colourFor(win.left, style.monotone));
