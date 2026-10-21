@@ -1,10 +1,11 @@
 import { Action, DidReceiveSettingsEvent, SingletonAction, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
 
-import type { DisplayMode } from "../render";
+import type { DisplayMode, Style } from "../render";
 import type { UsageSource, UsageState } from "../usage";
 
 export type UsageSettings = {
 	display?: DisplayMode;
+	monotone?: boolean;
 };
 
 /**
@@ -18,15 +19,19 @@ export abstract class UsageAction extends SingletonAction<UsageSettings> {
 		super();
 	}
 
-	protected abstract draw(action: Action<UsageSettings>, state: UsageState | undefined, mode: DisplayMode): Promise<void>;
+	protected abstract draw(action: Action<UsageSettings>, state: UsageState | undefined, style: Style): Promise<void>;
 
 	protected mode(id: string): DisplayMode {
 		return this.#settings.get(id)?.display ?? "used";
 	}
 
+	protected style(id: string): Style {
+		return { mode: this.mode(id), monotone: this.#settings.get(id)?.monotone === true };
+	}
+
 	async redraw(): Promise<void> {
 		const state = this.source.state();
-		await Promise.all(this.actions.map((action) => this.draw(action, state, this.mode(action.id))));
+		await Promise.all(this.actions.map((action) => this.draw(action, state, this.style(action.id))));
 	}
 
 	/** Press / tap: flip between "% left" and "% used", and re-read the snapshot in case it just changed. */
@@ -35,12 +40,12 @@ export abstract class UsageAction extends SingletonAction<UsageSettings> {
 		this.#settings.set(action.id, settings);
 		await action.setSettings(settings);
 		await this.source.refresh(true);
-		await this.draw(action, this.source.state(), settings.display!);
+		await this.draw(action, this.source.state(), this.style(action.id));
 	}
 
 	override async onWillAppear(ev: WillAppearEvent<UsageSettings>): Promise<void> {
 		this.#settings.set(ev.action.id, ev.payload.settings);
-		await this.draw(ev.action, this.source.state(), this.mode(ev.action.id));
+		await this.draw(ev.action, this.source.state(), this.style(ev.action.id));
 	}
 
 	override onWillDisappear(ev: WillDisappearEvent<UsageSettings>): void {
@@ -49,6 +54,6 @@ export abstract class UsageAction extends SingletonAction<UsageSettings> {
 
 	override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<UsageSettings>): Promise<void> {
 		this.#settings.set(ev.action.id, ev.payload.settings);
-		await this.draw(ev.action, this.source.state(), this.mode(ev.action.id));
+		await this.draw(ev.action, this.source.state(), this.style(ev.action.id));
 	}
 }

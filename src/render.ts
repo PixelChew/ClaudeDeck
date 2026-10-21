@@ -2,6 +2,9 @@ import type { UsageState, WindowState } from "./usage";
 
 export type DisplayMode = "left" | "used";
 
+/** How an action draws: which number it shows, and whether it drops the colours for plain white and grey. */
+export type Style = { mode: DisplayMode; monotone: boolean };
+
 const FONT = "Arial, Helvetica, sans-serif";
 const BG = "#111111";
 const TRACK = "#2a2a2a";
@@ -20,10 +23,19 @@ const LABELS: Record<WindowKind, { long: string; short: string; dial: string }> 
 };
 
 /** Green while there's plenty left, amber when it's getting low, red when nearly out. */
-export function colourFor(left: number): string {
+export function colourFor(left: number, monotone = false): string {
+	if (monotone) return "#ffffff";
 	if (left >= 50) return "#3ddc84";
 	if (left >= 20) return STALE;
 	return "#ff4d4f";
+}
+
+function labelColour(style: Style): string {
+	return style.monotone ? "#cfcfcf" : ACCENT;
+}
+
+function staleColour(style: Style): string {
+	return style.monotone ? MUTED : STALE;
 }
 
 function percentText(win: WindowState, mode: DisplayMode): string {
@@ -52,9 +64,10 @@ function bar(x: number, y: number, width: number, height: number, fraction: numb
 }
 
 /** Single-window key: ring gauge with the percentage in the middle. 144x144. */
-export function renderWindowKey(kind: WindowKind, state: UsageState | undefined, mode: DisplayMode): string {
+export function renderWindowKey(kind: WindowKind, state: UsageState | undefined, style: Style): string {
+	const { mode } = style;
 	const win = state?.[kind];
-	let body = `<rect width="144" height="144" fill="${BG}"/>` + text(72, 22, 20, ACCENT, LABELS[kind].long, "middle", "bold");
+	let body = `<rect width="144" height="144" fill="${BG}"/>` + text(72, 22, 20, labelColour(style), LABELS[kind].long, "middle", "bold");
 
 	const cx = 72;
 	const cy = 84;
@@ -68,7 +81,7 @@ export function renderWindowKey(kind: WindowKind, state: UsageState | undefined,
 	}
 
 	const fraction = (mode === "left" ? win.left : win.used) / 100;
-	const colour = colourFor(win.left);
+	const colour = colourFor(win.left, style.monotone);
 	if (fraction > 0) {
 		body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colour}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(fraction * circumference).toFixed(2)} ${circumference.toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`;
 	}
@@ -78,18 +91,19 @@ export function renderWindowKey(kind: WindowKind, state: UsageState | undefined,
 	body += text(cx, stale ? cy + 8 : cy + 12, pct.length > 3 ? 28 : 34, "#ffffff", pct, "middle", "bold");
 
 	// Under the number, only when Claude Code hasn't reported for a while: how old the numbers are.
-	if (stale) body += text(cx, cy + 28, 14, STALE, stale);
+	if (stale) body += text(cx, cy + 28, 14, staleColour(style), stale);
 	return svgUrl(144, 144, body);
 }
 
 type RowSizes = { label: number; value: number; unit: number; bar: number };
 
 /** Draws one labelled bar row; shared by the combined key and the dial. */
-function row(kind: WindowKind, win: WindowState | undefined, mode: DisplayMode, y: number, width: number, sizes: RowSizes, stale: string | undefined, label: "short" | "dial" = "short"): string {
+function row(kind: WindowKind, win: WindowState | undefined, style: Style, y: number, width: number, sizes: RowSizes, stale: string | undefined, label: "short" | "dial" = "short"): string {
+	const { mode } = style;
 	const pad = 10;
 	const baseline = y + sizes.value;
 	const barY = baseline + 6;
-	let out = text(pad, baseline, sizes.label, ACCENT, LABELS[kind][label], "start", "bold");
+	let out = text(pad, baseline, sizes.label, labelColour(style), LABELS[kind][label], "start", "bold");
 
 	if (!win) {
 		out += text(width - pad, baseline, sizes.value, MUTED, "--", "end", "bold");
@@ -98,41 +112,41 @@ function row(kind: WindowKind, win: WindowState | undefined, mode: DisplayMode, 
 	}
 
 	// After the number, only when the numbers have gone stale: how old they are.
-	const unit = stale ? `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${STALE}"> ${stale}</tspan>` : "";
+	const unit = stale ? `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${staleColour(style)}"> ${stale}</tspan>` : "";
 	out += text(width - pad, baseline, sizes.value, "#ffffff", `${percentText(win, mode)}${unit}`, "end", "bold");
-	out += bar(pad, barY, width - pad * 2, sizes.bar, (mode === "left" ? win.left : win.used) / 100, colourFor(win.left));
+	out += bar(pad, barY, width - pad * 2, sizes.bar, (mode === "left" ? win.left : win.used) / 100, colourFor(win.left, style.monotone));
 	return out;
 }
 
 /** 5H + weekly key: two stacked bars. 144x144. */
-export function renderCombinedKey(state: UsageState | undefined, mode: DisplayMode): string {
+export function renderCombinedKey(state: UsageState | undefined, style: Style): string {
 	const sizes = { label: 22, value: 28, unit: 13, bar: 14 };
 	let body = `<rect width="144" height="144" fill="${BG}"/>`;
 	if (!state) {
-		return svgUrl(144, 144, body + emptyMessage(72, 66, 15, 12));
+		return svgUrl(144, 144, body + emptyMessage(72, 66, 15, 12, style));
 	}
 
 	const stale = staleText(state);
-	body += row("fiveHour", state.fiveHour, mode, 14, 144, sizes, stale);
-	body += row("sevenDay", state.sevenDay, mode, 82, 144, sizes, stale);
+	body += row("fiveHour", state.fiveHour, style, 14, 144, sizes, stale);
+	body += row("sevenDay", state.sevenDay, style, 82, 144, sizes, stale);
 	return svgUrl(144, 144, body);
 }
 
 /** 5H + weekly dial: Stream Deck + touch strip segment. 200x100. */
-export function renderDial(state: UsageState | undefined, mode: DisplayMode): string {
+export function renderDial(state: UsageState | undefined, style: Style): string {
 	const sizes = { label: 20, value: 26, unit: 14, bar: 11 };
 	let body = `<rect width="200" height="100" fill="${BG}"/>`;
 	if (!state) {
-		return svgUrl(200, 100, body + emptyMessage(100, 46, 15, 12));
+		return svgUrl(200, 100, body + emptyMessage(100, 46, 15, 12, style));
 	}
 
 	const stale = staleText(state);
-	body += row("fiveHour", state.fiveHour, mode, 2, 200, sizes, stale, "dial");
-	body += row("sevenDay", state.sevenDay, mode, 51, 200, sizes, stale, "dial");
+	body += row("fiveHour", state.fiveHour, style, 2, 200, sizes, stale, "dial");
+	body += row("sevenDay", state.sevenDay, style, 51, 200, sizes, stale, "dial");
 	return svgUrl(200, 100, body);
 }
 
 /** Shown before the bridge has written anything. */
-function emptyMessage(x: number, y: number, titleSize: number, bodySize: number): string {
-	return text(x, y, titleSize, ACCENT, "CLAUDE USAGE", "middle", "bold") + text(x, y + bodySize + 8, bodySize, MUTED, "waiting for Claude Code");
+function emptyMessage(x: number, y: number, titleSize: number, bodySize: number, style: Style): string {
+	return text(x, y, titleSize, labelColour(style), "CLAUDE USAGE", "middle", "bold") + text(x, y + bodySize + 8, bodySize, MUTED, "waiting for Claude Code");
 }

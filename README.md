@@ -13,7 +13,7 @@ A Stream Deck plugin that shows how much of your Claude plan you have left: the 
 
 Press a key (or push the dial / tap the strip) to flip between **% used** (the default) and **% left**. The same choice is in each action's settings panel.
 
-Colours: green at 50%+ left, amber from 20%, red under 20%.
+Colours: green at 50%+ left, amber from 20%, red under 20%. Tick **Monotone** in an action's settings for plain white and grey instead.
 
 ## How it gets the numbers (and what it doesn't do)
 

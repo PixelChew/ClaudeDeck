@@ -1,15 +1,15 @@
 import { Action, action, DialDownEvent, TouchTapEvent } from "@elgato/streamdeck";
 
-import { DisplayMode, renderDial } from "../render";
+import { Style, renderDial } from "../render";
 import type { UsageState } from "../usage";
 import { UsageAction, UsageSettings } from "./usage-action";
 
 /** Both windows on a Stream Deck + touch strip segment. Press the dial or tap the strip to flip left/used. */
 @action({ UUID: "com.pixelchew.claude-usage.dial" })
 export class CombinedDial extends UsageAction {
-	protected override async draw(action: Action<UsageSettings>, state: UsageState | undefined, mode: DisplayMode): Promise<void> {
+	protected override async draw(action: Action<UsageSettings>, state: UsageState | undefined, style: Style): Promise<void> {
 		if (action.isDial()) {
-			await action.setFeedback({ canvas: renderDial(state, mode) });
+			await action.setFeedback({ canvas: renderDial(state, style) });
 		}
 	}
 
