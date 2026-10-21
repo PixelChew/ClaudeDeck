@@ -74,11 +74,11 @@ export function renderWindowKey(kind: WindowKind, state: UsageState | undefined,
 	}
 
 	const pct = percentText(win, mode);
-	body += text(cx, cy + 10, pct.length > 3 ? 28 : 34, "#ffffff", pct, "middle", "bold");
-
-	// Inside the ring: "left"/"used", or how old the numbers are when Claude Code hasn't reported for a while.
 	const stale = staleText(state);
-	body += stale ? text(cx, cy + 28, 14, STALE, stale) : text(cx, cy + 28, 14, MUTED, mode);
+	body += text(cx, stale ? cy + 8 : cy + 12, pct.length > 3 ? 28 : 34, "#ffffff", pct, "middle", "bold");
+
+	// Under the number, only when Claude Code hasn't reported for a while: how old the numbers are.
+	if (stale) body += text(cx, cy + 28, 14, STALE, stale);
 	return svgUrl(144, 144, body);
 }
 
@@ -97,8 +97,8 @@ function row(kind: WindowKind, win: WindowState | undefined, mode: DisplayMode, 
 		return out;
 	}
 
-	// The small word after the number is "left"/"used", or how old the numbers are when they've gone stale.
-	const unit = stale ? `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${STALE}"> ${stale}</tspan>` : `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${MUTED}"> ${mode}</tspan>`;
+	// After the number, only when the numbers have gone stale: how old they are.
+	const unit = stale ? `<tspan font-size="${sizes.unit}" font-weight="normal" fill="${STALE}"> ${stale}</tspan>` : "";
 	out += text(width - pad, baseline, sizes.value, "#ffffff", `${percentText(win, mode)}${unit}`, "end", "bold");
 	out += bar(pad, barY, width - pad * 2, sizes.bar, (mode === "left" ? win.left : win.used) / 100, colourFor(win.left));
 	return out;
