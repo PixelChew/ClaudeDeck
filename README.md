@@ -6,8 +6,8 @@ A Stream Deck plugin that shows how much of your Claude plan you have left: the 
 
 | Action | Where | Shows |
 | --- | --- | --- |
-| 5-hour window | Key | Ring gauge, % left, time until reset |
-| Weekly window | Key | Ring gauge, % left, time until reset |
+| 5-hour window | Key | Ring gauge, % left |
+| Weekly window | Key | Ring gauge, % left |
 | 5-hour + weekly | Key | Both windows as stacked bars |
 | 5-hour + weekly (dial) | Stream Deck + dial / touch strip | Both windows as stacked bars |
 
