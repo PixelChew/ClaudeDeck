@@ -53,6 +53,15 @@
 			"States": [{ "Image": "imgs/actions/key-placeholder", "ShowTitle": false }]
 		},
 		{
+			"Name": "Claude voice",
+			"UUID": "com.pixelchew.claude-usage.voice",
+			"Icon": "imgs/actions/voice",
+			"Tooltip": "Opens Claude in a new chat, then presses your Claude voice / dictation hotkey.",
+			"PropertyInspectorPath": "ui/voice.html",
+			"Controllers": ["Keypad"],
+			"States": [{ "Image": "imgs/actions/voice-key", "ShowTitle": false }]
+		},
+		{
 			"Name": "5-hour + weekly (dial)",
 			"UUID": "com.pixelchew.claude-usage.dial",
 			"Icon": "imgs/actions/combined",

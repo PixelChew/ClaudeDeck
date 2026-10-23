@@ -2,6 +2,7 @@ import streamDeck from "@elgato/streamdeck";
 
 import { CombinedDial } from "./actions/dial";
 import { CombinedKey, FiveHourKey, WeeklyKey } from "./actions/keys";
+import { VoiceKey } from "./actions/voice";
 import { LiveUsage } from "./live-usage";
 import { UsageSource } from "./usage";
 
@@ -13,6 +14,8 @@ const actions = [new FiveHourKey(source), new WeeklyKey(source), new CombinedKey
 for (const action of actions) {
 	streamDeck.actions.registerAction(action);
 }
+
+streamDeck.actions.registerAction(new VoiceKey());
 
 const redrawAll = (): void => {
 	for (const action of actions) {

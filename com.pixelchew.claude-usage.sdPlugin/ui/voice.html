@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+	<head lang="en">
+		<title>Claude Voice Settings</title>
+		<meta charset="utf-8" />
+		<script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+	</head>
+	<body>
+		<sdpi-item label="Hotkey">
+			<sdpi-textfield setting="shortcut" placeholder="e.g. ctrl+alt+space"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Wait (ms)">
+			<sdpi-textfield setting="delay" placeholder="1500"></sdpi-textfield>
+		</sdpi-item>
+		<p style="color: #9a9a9a; font-size: 9pt; margin: 8px 12px">
+			Claude's desktop app has no link that starts a voice conversation. This key opens a new chat (launching Claude if needed), waits, then presses the hotkey you enter here: the dictation shortcut set in Claude's settings. Use modifiers ctrl / alt / shift / cmd plus one key, for example ctrl+alt+space. Leave it empty to just open a new chat. macOS: allow Stream Deck under Privacy &amp; Security &gt; Accessibility.
+		</p>
+	</body>
+</html>
